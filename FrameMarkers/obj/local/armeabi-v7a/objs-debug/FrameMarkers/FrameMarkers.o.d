@@ -24,6 +24,7 @@ obj/local/armeabi-v7a/objs-debug/FrameMarkers/FrameMarkers.o: \
  C:/Users/Tom/workspace/external.libraries/android-ndk-r7b/platforms/android-14/arch-arm/usr/include/GLES2/gl2platform.h \
  C:/Users/Tom/workspace/external.libraries/android-ndk-r7b/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h \
  C:/Users/Tom/workspace/external.libraries/android-ndk-r7b/platforms/android-14/arch-arm/usr/include/GLES2/gl2ext.h \
+ jni/connection/ConnectionManager.h \
  jni/../../../build/include/QCAR/QCAR.h \
  jni/../../../build/include/QCAR/System.h \
  jni/../../../build/include/QCAR/CameraDevice.h \
@@ -92,6 +93,8 @@ C:/Users/Tom/workspace/external.libraries/android-ndk-r7b/platforms/android-14/a
 C:/Users/Tom/workspace/external.libraries/android-ndk-r7b/platforms/android-14/arch-arm/usr/include/KHR/khrplatform.h:
 
 C:/Users/Tom/workspace/external.libraries/android-ndk-r7b/platforms/android-14/arch-arm/usr/include/GLES2/gl2ext.h:
+
+jni/connection/ConnectionManager.h:
 
 jni/../../../build/include/QCAR/QCAR.h:
 

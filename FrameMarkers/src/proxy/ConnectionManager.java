@@ -1,0 +1,79 @@
+package proxy;
+
+import java.io.IOException;
+import java.io.OutputStream;
+import java.net.URLConnection;
+
+import org.apache.http.HttpHost;
+import org.apache.http.HttpResponse;
+import org.apache.http.client.HttpClient;
+import org.apache.http.client.methods.HttpPost;
+import org.apache.http.conn.params.ConnRoutePNames;
+import org.apache.http.entity.StringEntity;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import com.qualcomm.QCARSamples.FrameMarkers.DebugLog;
+
+import android.util.Log;
+
+public class ConnectionManager {
+	String url = "http://www.google.com/";
+	String charset = "UTF-8";
+	URLConnection conn;
+	public ConnectionManager()
+	{
+		
+	}
+	
+    private void updatePawn(int id, float x, float y) {
+    	DebugLog.LOGD("calling update pawn!");
+    	try {
+    	// Create a new HttpClient and Post Header
+    	HttpClient client = new DefaultHttpClient();
+    	String pawnId = Integer.toString(id+1);
+        HttpPost post = new HttpPost("http://192.168.0.100:8080/app/pawns/" + pawnId);
+        DebugLog.LOGD("created post!");
+        post.setHeader("Content-type", "application/x-www-form-urlencoded");
+        post.setHeader("Accept", "*/*");
+        
+        String message = String.format("x=%.4f&y=%.4f", 0.1,0.5);
+        
+        post.setEntity(new StringEntity(message, "UTF-8"));
+        HttpResponse response = client.execute(post);
+        DebugLog.LOGD("executed post! = " + "http://192.168.0.100:8080/app/pawns/" + pawnId + "/" + message + " ## response = " + response.toString());
+    	
+    	
+    	
+
+			
+        } catch (IOException e) {
+			// TODO Auto-generated catch block
+        	DebugLog.LOGD("ERROR! " + e.getMessage());
+        }
+    	
+    	
+//    	String message = String.format("id = %d   x=%.4f&y=%.4f", id, x,y);
+//    	
+//    	System.out.println(message);
+   }
+
+    void writeFloat(OutputStream out, float aFloat) throws IOException
+    {
+        int floatBits = Float.floatToIntBits(aFloat);
+        
+        writeInt(out, floatBits);
+    }
+    void writeInt(OutputStream out, int anInt) throws IOException
+    {
+        out.write(anInt & 0x000000FF);
+        out.write((anInt & 0x0000FF00) >> 8);
+        out.write((anInt & 0x00FF0000) >> 16);
+        out.write((anInt & 0xFF000000) >> 24);
+        out.flush();
+    }
+    
+   public native void register();
+	
+}
