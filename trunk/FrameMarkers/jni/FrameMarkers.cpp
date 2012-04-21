@@ -92,7 +92,7 @@ Java_proxy_ConnectionManager_register(JNIEnv * env, jobject obj) {
 	g_obj = obj;
 	g_obj = env->NewGlobalRef(g_obj);
 	CUSTOMLOG3("setting g_callback");
-	g_callback = env->GetMethodID(cls, "updatePawn", "(IFF)V");
+	g_callback = env->GetMethodID(cls, "updateServer", "(IFFFFFFFFFFFFFFF)V");
 	CUSTOMLOG3("g_callback set");
 
 }
@@ -136,6 +136,8 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkers_deinitTracker(JNIEnv *, 
 	QCAR::TrackerManager& trackerManager = QCAR::TrackerManager::getInstance();
 	trackerManager.deinitTracker(QCAR::Tracker::MARKER_TRACKER);
 }
+
+
 
 JNIEXPORT void JNICALL
 Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIEnv *env, jobject)
@@ -188,38 +190,21 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 		}
 
 		SampleUtils::Transpose(poseTranspose, R,C);
-
-		//		CUSTOMLOG2("******POSE_TRANSPOSE**************");
-		//		SampleUtils::printTransposePoseMatrix(poseTranspose);
-		//		CUSTOMLOG2("**************************");
-
 		float* result = new float[C*C];
 
 		SampleUtils::multiplyMatrices(poseTranspose, C, R, &poseOriginal[0],
 				R, C, result, C, C);
 
-		//		CUSTOMLOG2("WWWWWWWWWWWW");
-		//		SampleUtils::printMatrixW(result);
-		//		CUSTOMLOG2("WWWWWWWWWWWW");
+		CUSTOMLOG3("calling method");
+		CUSTOMLOG3("Coordinates of marker #%d", trackable->getId());
+		CUSTOMLOG3("x = %7.3f", result[12]);
+		CUSTOMLOG3("y = %7.3f", result[13]);
+		CUSTOMLOG3("z = %7.3f", result[14]);
+		CUSTOMLOG3("-=-=-=-=-=-=-==-=-=-=-=-");
 
+		env->CallVoidMethod(g_obj, g_callback, trackable->getId(), result[12], result[13], result[14], poseOriginal[0], poseOriginal[1], poseOriginal[2], poseOriginal[3], poseOriginal[4], poseOriginal[5], poseOriginal[6], poseOriginal[7], poseOriginal[8], poseOriginal[9], poseOriginal[10], poseOriginal[11]);
 
-
-			CUSTOMLOG3("got environment");
-			CUSTOMLOG3("environment == null: %s",(env == NULL)?"true":"false");
-			CUSTOMLOG3("g_obj == null: %s",(g_obj == NULL)?"true":"false");
-			CUSTOMLOG3("g_callback == null: %s",(g_callback == NULL)?"true":"false");
-			CUSTOMLOG3("calling method");
-			CUSTOMLOG3("Coordinates of marker #%d", trackable->getId());
-			CUSTOMLOG3("x = %7.3f", result[12]);
-			CUSTOMLOG3("y = %7.3f", result[13]);
-			CUSTOMLOG3("z = %7.3f", result[14]);
-			CUSTOMLOG3("-=-=-=-=-=-=-==-=-=-=-=-");
-
-			env->CallVoidMethod(g_obj, g_callback, trackable->getId(), result[12], result[13]);
-
-			CUSTOMLOG3("method called");
-
-
+		CUSTOMLOG3("JNI method called");
 
 		// Choose the texture based on the target name:
 		int textureIndex = 0;
@@ -284,10 +269,6 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 		SampleUtils::multiplyMatrix(&projectionMatrix.data[0],
 				&modelViewMatrix.data[0],
 				&modelViewProjection.data[0]);
-
-		//		CUSTOMLOG("====:modelViewProjection:====");
-		//		SampleUtils::printMatrix(&modelViewProjection.data[0]);
-		//		CUSTOMLOG("=============================");
 
 		glUseProgram(shaderProgramID);
 
