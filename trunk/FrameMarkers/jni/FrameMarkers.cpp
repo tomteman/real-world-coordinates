@@ -182,10 +182,12 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 
 		// this is the reference pose matrix which needs to be set for each camera
 		float poseOriginal[12] = {-0.045,-0.992,-0.118,-15.440, -0.999, 0.043, 0.014, 14.011, -0.009, 0.118, -0.993, 409.659};
+		float currentPose[12];
 
 		for(int j=0; j<R*C; j++)
 		{
 			poseTranspose[j] = poseMatrix.data[j];// copy source
+			currentPose[j] = poseMatrix.data[j];// copy source
 			//poseOriginal[j] = poseMatrix.data[j];// copy source
 		}
 
@@ -202,7 +204,7 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 		CUSTOMLOG3("z = %7.3f", result[14]);
 		CUSTOMLOG3("-=-=-=-=-=-=-==-=-=-=-=-");
 
-		env->CallVoidMethod(g_obj, g_callback, trackable->getId(), result[12], result[13], result[14], poseOriginal[0], poseOriginal[1], poseOriginal[2], poseOriginal[3], poseOriginal[4], poseOriginal[5], poseOriginal[6], poseOriginal[7], poseOriginal[8], poseOriginal[9], poseOriginal[10], poseOriginal[11]);
+		env->CallVoidMethod(g_obj, g_callback, trackable->getId(), result[12], result[13], result[14], currentPose[0], currentPose[1], currentPose[2], currentPose[3], currentPose[4], currentPose[5], currentPose[6], currentPose[7], currentPose[8], currentPose[9], currentPose[10], currentPose[11]);
 
 		CUSTOMLOG3("JNI method called");
 
