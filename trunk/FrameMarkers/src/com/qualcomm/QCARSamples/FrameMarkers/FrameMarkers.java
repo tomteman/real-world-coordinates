@@ -16,6 +16,8 @@ package com.qualcomm.QCARSamples.FrameMarkers;
 
 import java.util.Vector;
 
+import proxy.ConnectionManager;
+
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
@@ -100,7 +102,12 @@ public class FrameMarkers extends Activity
     {
         loadLibrary(NATIVE_LIB_QCAR);
         loadLibrary(NATIVE_LIB_SAMPLE);
-    }
+        ConnectionManager connectionManager = new ConnectionManager();
+        connectionManager.register();
+    
+	
+    
+	}
     
     
     /** An async task to initialize QCAR asynchronously. */
@@ -557,6 +564,8 @@ public class FrameMarkers extends Activity
         mSplashScreenStartTime = System.currentTimeMillis();
 
     }
+    
+    
     
     
     /** Native function to initialize the application. */

@@ -19,7 +19,7 @@
 
 #include <GLES2/gl2.h>
 #include <GLES2/gl2ext.h>
-
+#include <connection/ConnectionManager.h>
 #include <QCAR/QCAR.h>
 #include <QCAR/CameraDevice.h>
 #include <QCAR/Renderer.h>
@@ -42,6 +42,12 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+// JVM
+JavaVM *g_jvm = NULL;
+static jobject g_obj;
+static jmethodID g_callback;
+static jclass cls;
 
 // Textures:
 int textureCount = 0;
@@ -72,6 +78,23 @@ JNIEXPORT void JNICALL
 Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkers_setActivityPortraitMode(JNIEnv *, jobject, jboolean isPortrait)
 {
 	isActivityInPortraitMode = isPortrait;
+}
+
+JNIEXPORT void JNICALL
+Java_proxy_ConnectionManager_register(JNIEnv * env, jobject obj) {
+	//	(*env)-> MonitorEnter(env,obj);
+	CUSTOMLOG3("Java_proxy_ConnectionManager_register");
+	cls = env->GetObjectClass(obj);
+	//cls = (*env)->NewGlobalRef(env,extractedCls);
+	//__android_log_print(ANDROID_LOG_INFO,"JNI2","cls attained");
+	//JNIEnv::GetJavaVM(env, &g_jvm);
+	//	__android_log_print(ANDROID_LOG_INFO,"JNI2","env attained");
+	g_obj = obj;
+	g_obj = env->NewGlobalRef(g_obj);
+	CUSTOMLOG3("setting g_callback");
+	g_callback = env->GetMethodID(cls, "updatePawn", "(IFF)V");
+	CUSTOMLOG3("g_callback set");
+
 }
 
 JNIEXPORT int JNICALL
@@ -114,10 +137,8 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkers_deinitTracker(JNIEnv *, 
 	trackerManager.deinitTracker(QCAR::Tracker::MARKER_TRACKER);
 }
 
-
-
 JNIEXPORT void JNICALL
-Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIEnv *, jobject)
+Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIEnv *env, jobject)
 {
 	LOG("HELLO");
 	LOG("Java_com_qualcomm_QCARSamples_FrameMarkers_GLRenderer_renderFrame");
@@ -134,8 +155,7 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	QCAR::Matrix34F basePoseMatrix = {{-0.045, -0.992, -0.118, -15.440, -0.999,  0.043, 0.014, 14.011,	-0.009, 0.118, -0.993, 409.659}};
-
+	QCAR::Matrix34F basePoseMatrix = { {-0.045, -0.992, -0.118, -15.440, -0.999, 0.043, 0.014, 14.011, -0.009, 0.118, -0.993, 409.659}};
 
 	// Did we find any trackables this frame?
 	for(int tIdx = 0; tIdx < state.getNumActiveTrackables(); tIdx++)
@@ -145,14 +165,12 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 
 		const QCAR::Matrix34F poseMatrix = trackable->getPose();
 
-
 		QCAR::Matrix44F modelViewMatrix =
 		QCAR::Tool::convertPose2GLMatrix(trackable->getPose());
 
 		CUSTOMLOG2("********POSE_ORIGINAL***********");
 		SampleUtils::printPoseMatrix(&poseMatrix.data[0]);
 		CUSTOMLOG2("**************************");
-
 
 		//attempt to print (x,y,z)
 		int R=3;
@@ -161,36 +179,46 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 		//float* poseOriginal = new float[R*C];
 
 		// this is the reference pose matrix which needs to be set for each camera
-		float poseOriginal[12] = {-0.045,-0.992,-0.118,-15.440, -0.999,   0.043,   0.014,  14.011, -0.009,   0.118,  -0.993, 409.659};
+		float poseOriginal[12] = {-0.045,-0.992,-0.118,-15.440, -0.999, 0.043, 0.014, 14.011, -0.009, 0.118, -0.993, 409.659};
 
 		for(int j=0; j<R*C; j++)
 		{
-				poseTranspose[j] = poseMatrix.data[j];// copy source
-				//poseOriginal[j] = poseMatrix.data[j];// copy source
+			poseTranspose[j] = poseMatrix.data[j];// copy source
+			//poseOriginal[j] = poseMatrix.data[j];// copy source
 		}
 
 		SampleUtils::Transpose(poseTranspose, R,C);
 
-//		CUSTOMLOG2("******POSE_TRANSPOSE**************");
-//		SampleUtils::printTransposePoseMatrix(poseTranspose);
-//		CUSTOMLOG2("**************************");
+		//		CUSTOMLOG2("******POSE_TRANSPOSE**************");
+		//		SampleUtils::printTransposePoseMatrix(poseTranspose);
+		//		CUSTOMLOG2("**************************");
 
 		float* result = new float[C*C];
 
 		SampleUtils::multiplyMatrices(poseTranspose, C, R, &poseOriginal[0],
-	    		R, C, result, C, C);
+				R, C, result, C, C);
+
+		//		CUSTOMLOG2("WWWWWWWWWWWW");
+		//		SampleUtils::printMatrixW(result);
+		//		CUSTOMLOG2("WWWWWWWWWWWW");
 
 
-//		CUSTOMLOG2("WWWWWWWWWWWW");
-//		SampleUtils::printMatrixW(result);
-//		CUSTOMLOG2("WWWWWWWWWWWW");
 
+			CUSTOMLOG3("got environment");
+			CUSTOMLOG3("environment == null: %s",(env == NULL)?"true":"false");
+			CUSTOMLOG3("g_obj == null: %s",(g_obj == NULL)?"true":"false");
+			CUSTOMLOG3("g_callback == null: %s",(g_callback == NULL)?"true":"false");
+			CUSTOMLOG3("calling method");
+			CUSTOMLOG3("Coordinates of marker #%d", trackable->getId());
+			CUSTOMLOG3("x = %7.3f", result[12]);
+			CUSTOMLOG3("y = %7.3f", result[13]);
+			CUSTOMLOG3("z = %7.3f", result[14]);
+			CUSTOMLOG3("-=-=-=-=-=-=-==-=-=-=-=-");
 
-		CUSTOMLOG3("Coordinates of marker #%d", trackable->getId());
-		CUSTOMLOG3("x = %7.3f", result[12]);
-		CUSTOMLOG3("y = %7.3f", result[13]);
-		CUSTOMLOG3("z = %7.3f", result[14]);
-		CUSTOMLOG3("-=-=-=-=-=-=-==-=-=-=-=-");
+			env->CallVoidMethod(g_obj, g_callback, trackable->getId(), result[12], result[13]);
+
+			CUSTOMLOG3("method called");
+
 
 
 		// Choose the texture based on the target name:
@@ -211,7 +239,6 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 		const GLvoid* indices = 0;
 		const GLvoid* texCoords = 0;
 		int numIndices = 0;
-
 
 		switch (marker->getMarkerId())
 		{
@@ -258,9 +285,9 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 				&modelViewMatrix.data[0],
 				&modelViewProjection.data[0]);
 
-		CUSTOMLOG("====:modelViewProjection:====");
-		SampleUtils::printMatrix(&modelViewProjection.data[0]);
-		CUSTOMLOG("=============================");
+		//		CUSTOMLOG("====:modelViewProjection:====");
+		//		SampleUtils::printMatrix(&modelViewProjection.data[0]);
+		//		CUSTOMLOG("=============================");
 
 		glUseProgram(shaderProgramID);
 
