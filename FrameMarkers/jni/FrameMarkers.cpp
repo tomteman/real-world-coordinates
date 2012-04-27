@@ -293,6 +293,12 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 
 	}
 
+	// if no markers were detected
+	if (state.getNumActiveTrackables() == 0)
+	{
+		env->CallVoidMethod(g_obj, g_callback, -1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0);
+	}
+
 	glDisable(GL_DEPTH_TEST);
 	glDisableVertexAttribArray(vertexHandle);
 	glDisableVertexAttribArray(normalHandle);

@@ -12,29 +12,57 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import com.qualcomm.QCARSamples.FrameMarkers.DebugLog;
 
 public class ConnectionManager {
-	String url = "http://www.google.com/";
 	String charset = "UTF-8";
-	URLConnection conn;
-
+	static String cameraId = "0";
+	static String serverAddress = "192.168.0.100:1280";
+	
 	public ConnectionManager() {
 
 	}
 
+
+	private void updateConnection()
+	{
+		DebugLog.LOGD("calling update connection!");
+		try {
+			// Create a new HttpClient and Post Header
+			HttpClient client = new DefaultHttpClient();
+			HttpPost post = new HttpPost("http://" + serverAddress + 
+					"/api/updateConnection/" + cameraId);
+			post.setHeader("Content-type", "application/x-www-form-urlencoded");
+			post.setHeader("Accept", "*/*");
+
+			HttpResponse response = client.execute(post);
+			DebugLog.LOGD("executed POST = "
+					+ "http://192.168.0.100:8080/api/updateConnection/" + cameraId
+					+ "/" + " ## response = " + response.toString());
+
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			DebugLog.LOGD("ERROR! " + e.getMessage());
+		}
+	}
+	
 	private void updateServer(int markerId, float x, float y, float z,
 			float poseMatrix0, float poseMatrix1, float poseMatrix2,
 			float poseMatrix3, float poseMatrix4, float poseMatrix5,
 			float poseMatrix6, float poseMatrix7, float poseMatrix8,
 			float poseMatrix9, float poseMatrix10, float poseMatrix11) {
 
-		int cameraId = 0;
+		// no marker detected
+		if (markerId == -1)
+		{
+			updateConnection();
+			return;
+		}
+		
 		DebugLog.LOGD("calling update pawn!");
 		try {
 			// Create a new HttpClient and Post Header
 			HttpClient client = new DefaultHttpClient();
-			String cameraIdString = Integer.toString(cameraId);
+			
 			HttpPost post = new HttpPost(
-					"http://192.168.0.100:1280/api/cameras/" + cameraIdString);
-			DebugLog.LOGD("created post!");
+					"http://192.168.0.100:1280/api/cameras/" + cameraId);
 			post.setHeader("Content-type", "application/x-www-form-urlencoded");
 			post.setHeader("Accept", "*/*");
 
@@ -45,10 +73,10 @@ public class ConnectionManager {
 							poseMatrix6, poseMatrix7, poseMatrix8, poseMatrix9,
 							poseMatrix10, poseMatrix11);
 
-			post.setEntity(new StringEntity(message, "UTF-8"));
+			post.setEntity(new StringEntity(message, charset));
 			HttpResponse response = client.execute(post);
-			DebugLog.LOGD("executed post! = "
-					+ "http://192.168.0.100:8080/api/cameras/" + cameraIdString
+			DebugLog.LOGD("executed POST = "
+					+ "http://192.168.0.100:8080/api/cameras/" + cameraId
 					+ "/" + message + " ## response = " + response.toString());
 
 		} catch (IOException e) {
@@ -58,6 +86,24 @@ public class ConnectionManager {
 
 	}
 
+	public static String getCameraId()
+	{
+		return ConnectionManager.cameraId;
+	}
+	
+	public static void setCameraId(String cameraId)
+	{
+		ConnectionManager.cameraId = cameraId;
+	}
+	
+	public static String getServerAddress() {
+		return ConnectionManager.serverAddress;
+	}
+
+	public static void setServerAddress(String serverAddress) {
+		ConnectionManager.serverAddress = serverAddress;
+	}
+	
 	public native void register();
 
 }
