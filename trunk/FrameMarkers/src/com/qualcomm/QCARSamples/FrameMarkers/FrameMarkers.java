@@ -558,7 +558,7 @@ public class FrameMarkers extends Activity {
 		focusModes.add("Macro Mode").setCheckable(true);
 
 		menu.add("Set camera id");
-//		menu.add("Set server ip:port");
+		menu.add("Set server ip:port");
 
 		return true;
 	}
@@ -566,35 +566,70 @@ public class FrameMarkers extends Activity {
 	/** Invoked when the user selects an item from the Menu */
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getTitle().equals("Set camera id")) {
-			
-	        
-			final EditText idInput =  new EditText(getApplicationContext());
-			
-	        AlertDialog.Builder alert = new AlertDialog.Builder(this); 
 
-	        alert.setTitle("Please Login to Fogbugz"); 
-	        alert.setMessage("Enter your email and password"); 
-	        // Set an EditText view to get user input  
-	        alert.setView(idInput); 
-	        
-	        alert.setPositiveButton("Set id", new DialogInterface.OnClickListener() { 
-	        public void onClick(DialogInterface dialog, int whichButton) { 
-	        	DebugLog.LOGI("camera id set to " + idInput.getText().toString());
-	        	ConnectionManager.setCameraId(idInput.getText().toString());
-	        } 
-	        }); 
+			final EditText idInput = new EditText(getApplicationContext());
+			idInput.setText(ConnectionManager.getCameraId());
 
-	        alert.setNegativeButton("Cancel", new DialogInterface.OnClickListener() { 
-	          public void onClick(DialogInterface dialog, int whichButton) { 
-	            // Canceled. 
-	          } 
-	        }); 
+			AlertDialog.Builder alert = new AlertDialog.Builder(this);
 
-	        alert.show(); 
+			alert.setTitle("Please set the camera id");
+			alert.setMessage("Enter new camera id");
 
+			alert.setView(idInput);
 
-		} else 
-			if (item.getTitle().equals("Toggle flash")) {
+			alert.setPositiveButton("Set id",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							DebugLog.LOGI("camera id set to "
+									+ idInput.getText().toString());
+							ConnectionManager.setCameraId(idInput.getText()
+									.toString());
+						}
+					});
+
+			alert.setNegativeButton("Cancel",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// Canceled.
+						}
+					});
+
+			alert.show();
+
+		} else if (item.getTitle().equals("Set server ip:port")) {
+
+			final EditText ipInput = new EditText(getApplicationContext());
+			ipInput.setText(ConnectionManager.getServerAddress());
+			AlertDialog.Builder alert = new AlertDialog.Builder(this);
+
+			alert.setTitle("Please set the server ip:port");
+			alert.setMessage("Enter an ip:port (no http:// required)");
+			alert.setView(ipInput);
+
+			alert.setPositiveButton("Set ip:port",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							DebugLog.LOGI("Server ip:port set to "
+									+ ipInput.getText().toString());
+							ConnectionManager.setServerAddress(ipInput.getText()
+									.toString());
+						}
+					});
+
+			alert.setNegativeButton("Cancel",
+					new DialogInterface.OnClickListener() {
+						public void onClick(DialogInterface dialog,
+								int whichButton) {
+							// Canceled.
+						}
+					});
+
+			alert.show();
+
+		} else if (item.getTitle().equals("Toggle flash")) {
 			mFlash = !mFlash;
 			boolean result = activateFlash(mFlash);
 			DebugLog.LOGI("Turning flash " + (mFlash ? "ON" : "OFF") + " "
