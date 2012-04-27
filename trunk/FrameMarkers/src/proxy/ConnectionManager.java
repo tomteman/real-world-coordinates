@@ -1,7 +1,6 @@
 package proxy;
 
 import java.io.IOException;
-import java.net.URLConnection;
 
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
@@ -12,9 +11,10 @@ import org.apache.http.impl.client.DefaultHttpClient;
 import com.qualcomm.QCARSamples.FrameMarkers.DebugLog;
 
 public class ConnectionManager {
-	String charset = "UTF-8";
-	static String cameraId = "0";
-	static String serverAddress = "192.168.0.100:1280";
+	private final String CHARSET = "UTF-8";
+	
+	private static String cameraId = "0";
+	private static String serverAddress = "192.168.0.100:1280";
 	
 	public ConnectionManager() {
 
@@ -27,15 +27,13 @@ public class ConnectionManager {
 		try {
 			// Create a new HttpClient and Post Header
 			HttpClient client = new DefaultHttpClient();
-			HttpPost post = new HttpPost("http://" + serverAddress + 
-					"/api/updateConnection/" + cameraId);
+			String url = "http://" + serverAddress + "/api/updateConnection/" + cameraId;
+			HttpPost post = new HttpPost(url);
 			post.setHeader("Content-type", "application/x-www-form-urlencoded");
 			post.setHeader("Accept", "*/*");
 
 			HttpResponse response = client.execute(post);
-			DebugLog.LOGD("executed POST = "
-					+ "http://192.168.0.100:8080/api/updateConnection/" + cameraId
-					+ "/" + " ## response = " + response.toString());
+			DebugLog.LOGD("executed POST = " + url + " ## response = " + response.toString());
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
@@ -61,8 +59,8 @@ public class ConnectionManager {
 			// Create a new HttpClient and Post Header
 			HttpClient client = new DefaultHttpClient();
 			
-			HttpPost post = new HttpPost(
-					"http://192.168.0.100:1280/api/cameras/" + cameraId);
+			String url = "http://" + serverAddress + "/api/cameras/" + cameraId;
+			HttpPost post = new HttpPost(url);
 			post.setHeader("Content-type", "application/x-www-form-urlencoded");
 			post.setHeader("Accept", "*/*");
 
@@ -73,11 +71,9 @@ public class ConnectionManager {
 							poseMatrix6, poseMatrix7, poseMatrix8, poseMatrix9,
 							poseMatrix10, poseMatrix11);
 
-			post.setEntity(new StringEntity(message, charset));
+			post.setEntity(new StringEntity(message, CHARSET));
 			HttpResponse response = client.execute(post);
-			DebugLog.LOGD("executed POST = "
-					+ "http://192.168.0.100:8080/api/cameras/" + cameraId
-					+ "/" + message + " ## response = " + response.toString());
+			DebugLog.LOGD("executed POST = " + url + message + " ## response = " + response.toString());
 
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
