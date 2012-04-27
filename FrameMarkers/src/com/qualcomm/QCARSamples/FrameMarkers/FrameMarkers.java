@@ -16,23 +16,23 @@ package com.qualcomm.QCARSamples.FrameMarkers;
 import java.util.Vector;
 
 import proxy.ConnectionManager;
-
 import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
+import android.content.SharedPreferences;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
-import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
 import android.view.View;
-import android.view.WindowManager;
 import android.view.ViewGroup.LayoutParams;
+import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.ImageView;
 
@@ -66,6 +66,10 @@ public class FrameMarkers extends Activity {
 
 	// The minimum time the splash screen should be visible:
 	private static final long MIN_SPLASH_SCREEN_TIME = 2000;
+	
+	private static final String PREFS_NAME = "MARKERS";
+	private static final String PREF_SERVER_ADDRESS = "SERVER_ADDRESS";
+	private static final String PREF_CAMERA_ID = "CAMERA_ID";
 
 	// The time when the splash screen has become visible:
 	long mSplashScreenStartTime = 0;
@@ -87,7 +91,7 @@ public class FrameMarkers extends Activity {
 	// the Android onDestroy() life cycle event. If the application is destroyed
 	// while a data set is still being loaded, then we wait for the loading
 	// operation to finish before shutting down QCAR.
-	private Object mShutdownLock = new Object();
+	private final Object mShutdownLock = new Object();
 
 	// QCAR initialization flags
 	private int mQCARFlags = 0;
@@ -110,6 +114,7 @@ public class FrameMarkers extends Activity {
 		// Initialize with invalid value
 		private int mProgressValue = -1;
 
+		@Override
 		protected Boolean doInBackground(Void... params) {
 			// Prevent the onDestroy() method to overlap with initialization:
 			synchronized (mShutdownLock) {
@@ -141,11 +146,13 @@ public class FrameMarkers extends Activity {
 			}
 		}
 
+		@Override
 		protected void onProgressUpdate(Integer... values) {
 			// Do something with the progress value "values[0]", e.g. update
 			// splash screen, progress bar, etc.
 		}
 
+		@Override
 		protected void onPostExecute(Boolean result) {
 			// Done initializing QCAR, proceed to next application
 			// initialization status:
@@ -160,6 +167,7 @@ public class FrameMarkers extends Activity {
 						FrameMarkers.this).create();
 				dialogError.setButton("Close",
 						new DialogInterface.OnClickListener() {
+							@Override
 							public void onClick(DialogInterface dialog,
 									int which) {
 								// Exiting application
@@ -202,6 +210,7 @@ public class FrameMarkers extends Activity {
 	 * Called when the activity first starts or the user navigates back to an
 	 * activity.
 	 */
+	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		DebugLog.LOGD("FrameMarkers::onCreate");
 		super.onCreate(savedInstanceState);
@@ -218,6 +227,20 @@ public class FrameMarkers extends Activity {
 
 		// Update the application status to start initializing application
 		updateApplicationStatus(APPSTATUS_INIT_APP);
+		
+		loadSettings();
+	}
+
+	private void loadSettings() {
+		SharedPreferences prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE);
+		ConnectionManager.setServerAddress(prefs.getString(PREF_SERVER_ADDRESS, ConnectionManager.getServerAddress()));
+		ConnectionManager.setCameraId(prefs.getString(PREF_CAMERA_ID, ConnectionManager.getCameraId()));
+	}
+
+	protected void saveSetting(String name, String value) {
+		Editor editor = getSharedPreferences(PREFS_NAME, MODE_PRIVATE).edit();
+		editor.putString(name, value);
+		editor.commit();
 	}
 
 	/**
@@ -253,6 +276,7 @@ public class FrameMarkers extends Activity {
 	private native void setProjectionMatrix();
 
 	/** Called when the activity will start interacting with the user. */
+	@Override
 	protected void onResume() {
 		DebugLog.LOGD("FrameMarkers::onResume");
 		super.onResume();
@@ -280,6 +304,7 @@ public class FrameMarkers extends Activity {
 		}
 	}
 
+	@Override
 	public void onConfigurationChanged(Configuration config) {
 		DebugLog.LOGD("FrameMarkers::onConfigurationChanged");
 		super.onConfigurationChanged(config);
@@ -292,6 +317,7 @@ public class FrameMarkers extends Activity {
 	}
 
 	/** Called when the system is about to start resuming a previous activity. */
+	@Override
 	protected void onPause() {
 		DebugLog.LOGD("FrameMarkers::onPause");
 		super.onPause();
@@ -313,6 +339,7 @@ public class FrameMarkers extends Activity {
 	private native void deinitApplicationNative();
 
 	/** The final call you receive before your activity is destroyed. */
+	@Override
 	protected void onDestroy() {
 		DebugLog.LOGD("FrameMarkers::onDestroy");
 		super.onDestroy();
@@ -427,6 +454,7 @@ public class FrameMarkers extends Activity {
 			// the splash screen:
 			mSplashScreenHandler = new Handler();
 			mSplashScreenRunnable = new Runnable() {
+				@Override
 				public void run() {
 					// Hide the splash screen
 					mSplashScreenView.setVisibility(View.INVISIBLE);
@@ -545,6 +573,7 @@ public class FrameMarkers extends Activity {
 	 * Invoked the first time when the options menu is displayed to give the
 	 * Activity a chance to populate its Menu with menu items.
 	 */
+	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
 
@@ -564,6 +593,7 @@ public class FrameMarkers extends Activity {
 	}
 
 	/** Invoked when the user selects an item from the Menu */
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		if (item.getTitle().equals("Set camera id")) {
 
@@ -579,17 +609,19 @@ public class FrameMarkers extends Activity {
 
 			alert.setPositiveButton("Set id",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							DebugLog.LOGI("camera id set to "
-									+ idInput.getText().toString());
-							ConnectionManager.setCameraId(idInput.getText()
-									.toString());
+							String cameraId = idInput.getText().toString();
+							DebugLog.LOGI("camera id set to " + cameraId);
+							ConnectionManager.setCameraId(cameraId);
+							saveSetting(PREF_CAMERA_ID, cameraId);
 						}
 					});
 
 			alert.setNegativeButton("Cancel",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// Canceled.
@@ -610,17 +642,19 @@ public class FrameMarkers extends Activity {
 
 			alert.setPositiveButton("Set ip:port",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
-							DebugLog.LOGI("Server ip:port set to "
-									+ ipInput.getText().toString());
-							ConnectionManager.setServerAddress(ipInput.getText()
-									.toString());
+							String serverAddress = ipInput.getText().toString();
+							DebugLog.LOGI("Server ip:port set to " + serverAddress);
+							ConnectionManager.setServerAddress(serverAddress);
+							saveSetting(PREF_SERVER_ADDRESS, serverAddress);
 						}
 					});
 
 			alert.setNegativeButton("Cancel",
 					new DialogInterface.OnClickListener() {
+						@Override
 						public void onClick(DialogInterface dialog,
 								int whichButton) {
 							// Canceled.
