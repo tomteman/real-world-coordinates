@@ -23,6 +23,7 @@ import android.content.SharedPreferences;
 import android.content.SharedPreferences.Editor;
 import android.content.pm.ActivityInfo;
 import android.content.res.Configuration;
+import android.media.MediaRecorder;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
@@ -248,6 +249,10 @@ public class FrameMarkers extends Activity {
 	 * for rendering.
 	 */
 	private void loadTextures() {
+		mTextures.add(Texture.loadTextureFromApk("letter_Q.png", getAssets()));
+		mTextures.add(Texture.loadTextureFromApk("letter_C.png", getAssets()));
+		mTextures.add(Texture.loadTextureFromApk("letter_A.png", getAssets()));
+		mTextures.add(Texture.loadTextureFromApk("letter_R.png", getAssets()));
 		mTextures.add(Texture.loadTextureFromApk("letter_Q.png", getAssets()));
 		mTextures.add(Texture.loadTextureFromApk("letter_C.png", getAssets()));
 		mTextures.add(Texture.loadTextureFromApk("letter_A.png", getAssets()));
@@ -569,6 +574,7 @@ public class FrameMarkers extends Activity {
 
 	}
 
+	
 	/**
 	 * Invoked the first time when the options menu is displayed to give the
 	 * Activity a chance to populate its Menu with menu items.

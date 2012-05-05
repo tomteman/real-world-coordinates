@@ -26,12 +26,12 @@
 
 void SampleUtils::printPoseMatrix(const float* mat) {
 	for (int r = 0; r < 3; r++, mat += 4)
-		CUSTOMLOG2("%7.3f %7.3f %7.3f %7.3f", mat[0], mat[1], mat[2], mat[3]);
+		CUSTOMLOG("%7.3f %7.3f %7.3f %7.3f", mat[0], mat[1], mat[2], mat[3]);
 }
 
 void SampleUtils::printTransposePoseMatrix(const float* mat) {
 	for (int r = 0; r < 4; r++, mat += 3)
-		CUSTOMLOG2("%7.3f %7.3f %7.3f", mat[0], mat[1], mat[2]);
+		CUSTOMLOG("%7.3f %7.3f %7.3f", mat[0], mat[1], mat[2]);
 }
 
 void SampleUtils::printMatrix(const float* mat) {
@@ -39,10 +39,6 @@ void SampleUtils::printMatrix(const float* mat) {
 		CUSTOMLOG("%7.3f %7.3f %7.3f %7.3f", mat[0], mat[1], mat[2], mat[3]);
 }
 
-void SampleUtils::printMatrixW(const float* mat) {
-	for (int r = 0; r < 4; r++, mat += 4)
-		CUSTOMLOG3("%7.3f %7.3f %7.3f %7.3f", mat[0], mat[1], mat[2], mat[3]);
-}
 
 void SampleUtils::checkGlError(const char* operation) {
 	for (GLint error = glGetError(); error; error = glGetError())

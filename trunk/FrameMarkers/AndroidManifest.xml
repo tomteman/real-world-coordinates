@@ -101,6 +101,7 @@
          assumed as required. 
     -->
     <uses-feature android:name="android.hardware.camera" />
+    <uses-feature android:name="android.hardware.camera.autofocus"/>
     
     <!-- 
         Add this permission to get access to the camera
@@ -126,5 +127,9 @@
         Add this permission to access HW ID.
      -->
     <uses-permission android:name="android.permission.READ_PHONE_STATE"/>
+    
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    
+    <uses-permission android:name="android.permission.RECORD_AUDIO" />
 
 </manifest>
