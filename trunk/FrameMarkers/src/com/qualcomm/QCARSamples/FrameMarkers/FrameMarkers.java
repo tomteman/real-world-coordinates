@@ -28,6 +28,7 @@ import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Handler;
 import android.util.DisplayMetrics;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.SubMenu;
@@ -38,6 +39,7 @@ import android.widget.EditText;
 import android.widget.ImageView;
 
 import com.qualcomm.QCAR.QCAR;
+import com.qualcomm.QCARSamples.videoRecorder.VideoRecorder;
 
 /** The main activity for the FrameMarkers sample. */
 public class FrameMarkers extends Activity {
@@ -100,6 +102,7 @@ public class FrameMarkers extends Activity {
 	// The textures we will use for rendering:
 	private Vector<Texture> mTextures;
 	private int mSplashScreenImageResource = 0;
+	private VideoRecorder videoRecorder;
 
 	/** Static initializer block to load native libraries on start-up. */
 	static {
@@ -572,6 +575,8 @@ public class FrameMarkers extends Activity {
 		mRenderer = new FrameMarkersRenderer();
 		mGlView.setRenderer(mRenderer);
 
+		videoRecorder = new VideoRecorder();
+		
 	}
 
 	
@@ -594,6 +599,8 @@ public class FrameMarkers extends Activity {
 
 		menu.add("Set camera id");
 		menu.add("Set server ip:port");
+		menu.add("Start recording");
+		menu.add("Stop recording");
 
 		return true;
 	}
@@ -601,7 +608,29 @@ public class FrameMarkers extends Activity {
 	/** Invoked when the user selects an item from the Menu */
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		if (item.getTitle().equals("Set camera id")) {
+		if (item.getTitle().equals("Start recording"))
+		{
+			try {
+				videoRecorder.beginRecording();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				DebugLog.LOGE("Failed to start recording: "+ e.getMessage());
+				e.printStackTrace();
+				
+			}
+		}
+		else if (item.getTitle().equals("Stop recording"))
+		{
+			try {
+				videoRecorder.stopRecording();
+			} catch (Exception e) {
+				// TODO Auto-generated catch block
+				DebugLog.LOGE("Failed to start recording: "+ e.getMessage());
+				e.printStackTrace();
+				
+			}
+		}
+		else if (item.getTitle().equals("Set camera id")) {
 
 			final EditText idInput = new EditText(getApplicationContext());
 			idInput.setText(ConnectionManager.getCameraId());
