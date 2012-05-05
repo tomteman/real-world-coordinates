@@ -83,7 +83,7 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkers_setActivityPortraitMode(
 JNIEXPORT void JNICALL
 Java_proxy_ConnectionManager_register(JNIEnv * env, jobject obj) {
 	//	(*env)-> MonitorEnter(env,obj);
-	CUSTOMLOG3("Java_proxy_ConnectionManager_register");
+	CUSTOMLOG("Java_proxy_ConnectionManager_register");
 	cls = env->GetObjectClass(obj);
 	//cls = (*env)->NewGlobalRef(env,extractedCls);
 	//__android_log_print(ANDROID_LOG_INFO,"JNI2","cls attained");
@@ -91,9 +91,9 @@ Java_proxy_ConnectionManager_register(JNIEnv * env, jobject obj) {
 	//	__android_log_print(ANDROID_LOG_INFO,"JNI2","env attained");
 	g_obj = obj;
 	g_obj = env->NewGlobalRef(g_obj);
-	CUSTOMLOG3("setting g_callback");
-	g_callback = env->GetMethodID(cls, "updateServer", "(IFFFFFFFFFFFFFFF)V");
-	CUSTOMLOG3("g_callback set");
+	CUSTOMLOG("setting g_callback");
+	g_callback = env->GetMethodID(cls, "updateServer", "(IFFFFFFFFFFFF)V");
+	CUSTOMLOG("g_callback set");
 
 }
 
@@ -114,10 +114,15 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkers_initTracker(JNIEnv *, jo
 	LOG("Successfully initialized MarkerTracker.");
 
 	// Create frame markers:
-	if (!markerTracker->createFrameMarker(0, "MarkerQ", QCAR::Vec2F(50,50)) ||
-			!markerTracker->createFrameMarker(1, "MarkerC", QCAR::Vec2F(50,50)) ||
-			!markerTracker->createFrameMarker(2, "MarkerA", QCAR::Vec2F(50,50)) ||
-			!markerTracker->createFrameMarker(3, "MarkerR", QCAR::Vec2F(50,50)))
+	if (!markerTracker->createFrameMarker(0, "Marker0", QCAR::Vec2F(50,50)) ||
+			!markerTracker->createFrameMarker(1, "Marker1", QCAR::Vec2F(50,50)) ||
+			!markerTracker->createFrameMarker(2, "Marker2", QCAR::Vec2F(50,50)) ||
+			!markerTracker->createFrameMarker(3, "Marker3", QCAR::Vec2F(50,50)) ||
+			!markerTracker->createFrameMarker(4, "Marker4", QCAR::Vec2F(50,50)) ||
+			!markerTracker->createFrameMarker(5, "Marker5", QCAR::Vec2F(50,50)) ||
+			!markerTracker->createFrameMarker(6, "Marker6", QCAR::Vec2F(50,50)) ||
+			!markerTracker->createFrameMarker(7, "Marker7", QCAR::Vec2F(50,50)) ||
+			!markerTracker->createFrameMarker(8, "Marker8", QCAR::Vec2F(50,50)))
 	{
 		LOG("Failed to create frame markers.");
 		return 0;
@@ -157,8 +162,6 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_CULL_FACE);
 
-	QCAR::Matrix34F basePoseMatrix = { {-0.045, -0.992, -0.118, -15.440, -0.999, 0.043, 0.014, 14.011, -0.009, 0.118, -0.993, 409.659}};
-
 	// Did we find any trackables this frame?
 	for(int tIdx = 0; tIdx < state.getNumActiveTrackables(); tIdx++)
 	{
@@ -170,43 +173,16 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 		QCAR::Matrix44F modelViewMatrix =
 		QCAR::Tool::convertPose2GLMatrix(trackable->getPose());
 
-		CUSTOMLOG2("********POSE_ORIGINAL***********");
+		CUSTOMLOG("********POSE MATRIX***********");
 		SampleUtils::printPoseMatrix(&poseMatrix.data[0]);
-		CUSTOMLOG2("**************************");
+		CUSTOMLOG("**************************");
 
-		//attempt to print (x,y,z)
-		int R=3;
-		int C=4;
-		float* poseTranspose = new float[R*C];
-		//float* poseOriginal = new float[R*C];
 
-		// this is the reference pose matrix which needs to be set for each camera
-		float poseOriginal[12] = {-0.045,-0.992,-0.118,-15.440, -0.999, 0.043, 0.014, 14.011, -0.009, 0.118, -0.993, 409.659};
-		float currentPose[12];
+		CUSTOMLOG("Detected marker with id: #%d", trackable->getId());
 
-		for(int j=0; j<R*C; j++)
-		{
-			poseTranspose[j] = poseMatrix.data[j];// copy source
-			currentPose[j] = poseMatrix.data[j];// copy source
-			//poseOriginal[j] = poseMatrix.data[j];// copy source
-		}
-
-		SampleUtils::Transpose(poseTranspose, R,C);
-		float* result = new float[C*C];
-
-		SampleUtils::multiplyMatrices(poseTranspose, C, R, &poseOriginal[0],
-				R, C, result, C, C);
-
-		CUSTOMLOG3("calling method");
-		CUSTOMLOG3("Coordinates of marker #%d", trackable->getId());
-		CUSTOMLOG3("x = %7.3f", result[12]);
-		CUSTOMLOG3("y = %7.3f", result[13]);
-		CUSTOMLOG3("z = %7.3f", result[14]);
-		CUSTOMLOG3("-=-=-=-=-=-=-==-=-=-=-=-");
-
-		env->CallVoidMethod(g_obj, g_callback, trackable->getId(), result[12], result[13], result[14], currentPose[0], currentPose[1], currentPose[2], currentPose[3], currentPose[4], currentPose[5], currentPose[6], currentPose[7], currentPose[8], currentPose[9], currentPose[10], currentPose[11]);
-
-		CUSTOMLOG3("JNI method called");
+		CUSTOMLOG("calling JNI method");
+		env->CallVoidMethod(g_obj, g_callback, trackable->getId(), poseMatrix.data[0], poseMatrix.data[1], poseMatrix.data[2], poseMatrix.data[3], poseMatrix.data[4], poseMatrix.data[5], poseMatrix.data[6], poseMatrix.data[7], poseMatrix.data[8], poseMatrix.data[9], poseMatrix.data[10], poseMatrix.data[11]);
+		CUSTOMLOG("JNI method called");
 
 		// Choose the texture based on the target name:
 		int textureIndex = 0;
@@ -215,7 +191,10 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 		assert(trackable->getType() == QCAR::Trackable::MARKER);
 		const QCAR::Marker* marker = static_cast<const QCAR::Marker*>(trackable);
 
+
 		textureIndex = marker->getMarkerId();
+		CUSTOMLOG("Texture index: #%d", textureIndex);
+		CUSTOMLOG("Texture count: #%d", textureCount);
 
 		assert(textureIndex < textureCount);
 		const Texture* const thisTexture = textures[textureIndex];
@@ -229,7 +208,6 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 
 		switch (marker->getMarkerId())
 		{
-
 			case 0:
 			vertices = &QobjectVertices[0];
 			normals = &QobjectNormals[0];
@@ -245,6 +223,34 @@ Java_com_qualcomm_QCARSamples_FrameMarkers_FrameMarkersRenderer_renderFrame(JNIE
 			numIndices = NUM_C_OBJECT_INDEX;
 			break;
 			case 2:
+			vertices = &AobjectVertices[0];
+			normals = &AobjectNormals[0];
+			indices = &AobjectIndices[0];
+			texCoords = &AobjectTexCoords[0];
+			numIndices = NUM_A_OBJECT_INDEX;
+			break;
+			case 3:
+			vertices = &RobjectVertices[0];
+			normals = &RobjectNormals[0];
+			indices = &RobjectIndices[0];
+			texCoords = &RobjectTexCoords[0];
+			numIndices = NUM_R_OBJECT_INDEX;
+			break;
+			case 4:
+			vertices = &QobjectVertices[0];
+			normals = &QobjectNormals[0];
+			indices = &QobjectIndices[0];
+			texCoords = &QobjectTexCoords[0];
+			numIndices = NUM_Q_OBJECT_INDEX;
+			break;
+			case 5:
+			vertices = &CobjectVertices[0];
+			normals = &CobjectNormals[0];
+			indices = &CobjectIndices[0];
+			texCoords = &CobjectTexCoords[0];
+			numIndices = NUM_C_OBJECT_INDEX;
+			break;
+			case 6:
 			vertices = &AobjectVertices[0];
 			normals = &AobjectNormals[0];
 			indices = &AobjectIndices[0];

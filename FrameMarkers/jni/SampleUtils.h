@@ -21,11 +21,9 @@
 
 // Utility for logging:
 #define LOG_TAG    "QCAR"
-#define CUSTOM_LOG_TAG    "QCAR-TOM"
+#define CUSTOM_LOG_TAG    "CUSTOM_LOG"
 #define LOG(...)  __android_log_print(ANDROID_LOG_DEBUG, LOG_TAG, __VA_ARGS__)
 #define CUSTOMLOG(...)  __android_log_print(ANDROID_LOG_DEBUG, CUSTOM_LOG_TAG, __VA_ARGS__)
-#define CUSTOMLOG2(...)  __android_log_print(ANDROID_LOG_DEBUG, "POSE", __VA_ARGS__)
-#define CUSTOMLOG3(...)  __android_log_print(ANDROID_LOG_DEBUG, "WWW", __VA_ARGS__)
 
 
 /// A utility class used by the QCAR SDK samples.
@@ -41,8 +39,6 @@ public:
 
     /// Prints a 4x4 matrix.
     static void printMatrix(const float* matrix);
-
-    static void printMatrixW(const float* matrix);
 
     static void Transpose(float* psrc, int R, int C);
 
