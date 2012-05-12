@@ -1,6 +1,10 @@
 package proxy;
 
 import java.io.IOException;
+import java.net.DatagramPacket;
+import java.net.DatagramSocket;
+import java.net.InetAddress;
+import java.net.SocketException;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -24,6 +28,7 @@ public class ConnectionManager implements Runnable {
 	private static final Map<Integer, String> pendingUpdates = new HashMap<Integer, String>();
 
 	private static final String TAG = ConnectionManager.class.getName();
+	private DatagramSocket socket;
 
 	public ConnectionManager() {
 		if (connectionThread == null) {
@@ -32,30 +37,46 @@ public class ConnectionManager implements Runnable {
 			connectionThread.start();
 			new KeepAliveThread(this).start();
 		}
+		try {
+			socket = new DatagramSocket();
+		} catch (SocketException e) {
+			Log.e(TAG, "ERROR initializing UDP socket! ", e);
+		}
+	}
+
+	private void sendUdpUpdate(String message) throws IOException {
+		InetAddress server = InetAddress.getByName(serverAddress.split(":")[0]);
+		int serverPort = Integer.valueOf(serverAddress.split(":")[1]);
+		byte[] messageBytes = message.getBytes();
+		DatagramPacket packet = new DatagramPacket(messageBytes, messageBytes.length, server, serverPort);
+		socket.send(packet);
 	}
 
 	public void sendKeepAlive() {
 		DebugLog.LOGD("calling update connection!");
 		try {
-			// Create a new HttpClient and Post Header
-			HttpClient client = new DefaultHttpClient();
-			String url = "http://" + serverAddress + "/api/updateConnection/" + cameraId;
-			HttpPost post = new HttpPost(url);
-			post.setHeader("Content-type", "application/x-www-form-urlencoded");
-			post.setHeader("Accept", "*/*");
+			if (serverAddress.toLowerCase().startsWith("http://")) {
+				HttpClient client = new DefaultHttpClient();
 
-			HttpResponse response = client.execute(post);
-			DebugLog.LOGD("executed POST = " + url + " ## response = " + response.toString());
+				String url = serverAddress + "/api/updateConnection/" + cameraId;
+				HttpPost post = new HttpPost(url);
+				post.setHeader("Content-type", "application/x-www-form-urlencoded");
+				post.setHeader("Accept", "*/*");
 
+				HttpResponse response = client.execute(post);
+				DebugLog.LOGD("executed POST = " + url + " ## response = " + response.toString());
+			} else {
+				sendUdpUpdate("camera=" + cameraId);
+			}
 		} catch (IOException e) {
 			// TODO Auto-generated catch block
-			DebugLog.LOGD("ERROR! " + e.getMessage());
+			DebugLog.LOGD("ERROR when sending KeepAlive! " + e.getMessage());
 		}
 	}
 
-	private void updateServer(int markerId, float poseMatrix0, float poseMatrix1,
-			float poseMatrix2, float poseMatrix3, float poseMatrix4, float poseMatrix5, float poseMatrix6,
-			float poseMatrix7, float poseMatrix8, float poseMatrix9, float poseMatrix10, float poseMatrix11) {
+	private void updateServer(int markerId, float poseMatrix0, float poseMatrix1, float poseMatrix2, float poseMatrix3,
+			float poseMatrix4, float poseMatrix5, float poseMatrix6, float poseMatrix7, float poseMatrix8, float poseMatrix9,
+			float poseMatrix10, float poseMatrix11) {
 
 		// no marker detected
 		if (markerId == -1) {
@@ -64,10 +85,9 @@ public class ConnectionManager implements Runnable {
 
 		DebugLog.LOGD("calling update pawn!");
 
-		String markerData = String.format(
-				"marker=%d&matrix=%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f",
-				markerId, poseMatrix0, poseMatrix1, poseMatrix2, poseMatrix3, poseMatrix4, poseMatrix5,
-				poseMatrix6, poseMatrix7, poseMatrix8, poseMatrix9, poseMatrix10, poseMatrix11);
+		String markerData = String.format("marker=%d&matrix=%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f",
+				markerId, poseMatrix0, poseMatrix1, poseMatrix2, poseMatrix3, poseMatrix4, poseMatrix5, poseMatrix6, poseMatrix7,
+				poseMatrix8, poseMatrix9, poseMatrix10, poseMatrix11);
 
 		synchronized (pendingUpdates) {
 			pendingUpdates.put(markerId, markerData);
@@ -77,19 +97,19 @@ public class ConnectionManager implements Runnable {
 
 	private void sendUpdate(String markerInfo) {
 		try {
-			// Create a new HttpClient and Post Header
-			HttpClient client = new DefaultHttpClient();
+			if (serverAddress.toLowerCase().startsWith("http://")) {
+				HttpClient client = new DefaultHttpClient();
+				String url = serverAddress + "/api/cameras/" + cameraId;
+				HttpPost post = new HttpPost(url);
+				post.setHeader("Content-type", "application/x-www-form-urlencoded");
+				post.setHeader("Accept", "*/*");
 
-			String url = "http://" + serverAddress + "/api/cameras/" + cameraId;
-			HttpPost post = new HttpPost(url);
-			post.setHeader("Content-type", "application/x-www-form-urlencoded");
-			post.setHeader("Accept", "*/*");
-
-			post.setEntity(new StringEntity(markerInfo, CHARSET));
-			HttpResponse response = client.execute(post);
-			DebugLog.LOGD("executed POST = " + url + " ## data = " + markerInfo + " ## response = "
-					+ response.toString());
-
+				post.setEntity(new StringEntity(markerInfo, CHARSET));
+				HttpResponse response = client.execute(post);
+				DebugLog.LOGD("executed POST = " + url + " ## data = " + markerInfo + " ## response = " + response.toString());
+			} else {
+				sendUdpUpdate("camera=" + cameraId + "&" + markerInfo);
+			}
 		} catch (IOException e) {
 			DebugLog.LOGE("ERROR! " + e.getMessage());
 		}
