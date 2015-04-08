@@ -1,0 +1,1 @@
+Download and install the qualcomm SDK, and use the markers inside the "media" folder.
